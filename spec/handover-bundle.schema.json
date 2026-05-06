@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handoff-smooth-transitions.lovable.app/schemas/handover-bundle/v0.1",
+  "title": "Handoff Bundle",
+  "description": "Portable, vendor-neutral handover format for SEO engagements. Draft v0.1 — schema is unstable and will change.",
+  "type": "object",
+  "required": ["meta", "audit_history", "link_inventory", "decisions_log", "baseline_metrics"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Bundle-level metadata. Identifies the brand, the outgoing and incoming parties, the bundle version, and integrity hashes used for legal-grade audit trails.",
+      "required": ["bundle_version", "brand", "generated_at"],
+      "properties": {
+        "bundle_version": { "type": "string", "pattern": "^v[0-9]+\\.[0-9]+(\\.[0-9]+)?$", "examples": ["v0.1", "v1.0.0"] },
+        "brand": {
+          "type": "object",
+          "required": ["legal_name", "primary_domain"],
+          "properties": {
+            "legal_name": { "type": "string" },
+            "primary_domain": { "type": "string", "format": "hostname" },
+            "additional_domains": { "type": "array", "items": { "type": "string", "format": "hostname" } },
+            "country": { "type": "string", "description": "ISO 3166-1 alpha-2", "minLength": 2, "maxLength": 2 }
+          }
+        },
+        "outgoing_party": { "$ref": "#/$defs/party" },
+        "incoming_party": { "$ref": "#/$defs/party" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "generated_by": { "type": "string", "description": "Tool/platform that emitted the bundle." },
+        "signature": {
+          "type": "object",
+          "description": "Optional cryptographic integrity proof.",
+          "properties": {
+            "algorithm": { "type": "string", "examples": ["sha256", "ed25519"] },
+            "hash": { "type": "string" },
+            "signed_by": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "audit_history": {
+      "type": "array",
+      "description": "Every site-audit run delivered to the brand: when it ran, who ran it, what tool produced it, and the remediation status of each finding.",
+      "items": {
+        "type": "object",
+        "required": ["audit_id", "ran_at", "tool"],
+        "properties": {
+          "audit_id": { "type": "string" },
+          "ran_at": { "type": "string", "format": "date-time" },
+          "tool": { "type": "string", "examples": ["Screaming Frog", "Ahrefs Site Audit", "Semrush Site Audit", "Sitebulb"] },
+          "scope": { "type": "object", "properties": { "domain": { "type": "string" }, "url_count": { "type": "integer" } } },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["severity", "type", "url"],
+              "properties": {
+                "severity": { "enum": ["critical", "high", "medium", "low", "info"] },
+                "type": { "type": "string", "examples": ["broken_link", "missing_h1", "duplicate_title", "slow_lcp", "missing_canonical"] },
+                "url": { "type": "string", "format": "uri" },
+                "remediation_status": { "enum": ["open", "in_progress", "fixed", "wontfix", "deferred"] },
+                "remediation_note": { "type": "string" },
+                "first_seen": { "type": "string", "format": "date-time" },
+                "resolved_at": { "type": ["string", "null"], "format": "date-time" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "link_inventory": {
+      "type": "array",
+      "description": "All known backlinks with the metadata required to reproduce, defend, or replace them. Each link carries an escrow status.",
+      "items": {
+        "type": "object",
+        "required": ["source_url", "target_url", "status"],
+        "properties": {
+          "source_url": { "type": "string", "format": "uri" },
+          "target_url": { "type": "string", "format": "uri" },
+          "anchor_text": { "type": "string" },
+          "anchor_type": { "enum": ["exact_match", "phrase_match", "branded", "naked_url", "generic", "image"] },
+          "rel": {
+            "type": "array",
+            "items": { "enum": ["nofollow", "ugc", "sponsored", "dofollow"] }
+          },
+          "domain_rating": { "type": "number", "minimum": 0, "maximum": 100 },
+          "url_rating": { "type": "number", "minimum": 0, "maximum": 100 },
+          "first_seen": { "type": "string", "format": "date" },
+          "last_checked": { "type": "string", "format": "date" },
+          "status": { "$ref": "#/$defs/escrow_status" },
+          "acquisition": {
+            "type": "object",
+            "properties": {
+              "method": { "enum": ["outreach", "guest_post", "digital_pr", "linkbait", "directory", "partnership", "unknown"] },
+              "cost_usd": { "type": "number", "minimum": 0 },
+              "vendor_id": { "type": "string", "description": "FK to vendor_relationships[].vendor_id" },
+              "campaign": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "disavow": {
+      "type": "object",
+      "description": "Active disavow list with rationale per entry. Brands need this to defend against algorithmic re-evaluation.",
+      "properties": {
+        "last_uploaded_at": { "type": "string", "format": "date-time" },
+        "search_engine": { "enum": ["google", "yandex", "bing"] },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pattern", "rationale"],
+            "properties": {
+              "pattern": { "type": "string", "description": "domain:example.com or full URL" },
+              "type": { "enum": ["domain", "url"] },
+              "rationale": { "type": "string" },
+              "added_at": { "type": "string", "format": "date" },
+              "added_by": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "content_briefs": {
+      "type": "array",
+      "description": "Briefs delivered to writers, with target keywords and SERP context. Lets the incoming agency understand WHY a piece was commissioned.",
+      "items": {
+        "type": "object",
+        "required": ["brief_id", "title", "target_keywords"],
+        "properties": {
+          "brief_id": { "type": "string" },
+          "title": { "type": "string" },
+          "target_keywords": { "type": "array", "items": { "type": "string" } },
+          "target_url": { "type": "string", "format": "uri" },
+          "intent": { "enum": ["informational", "commercial", "transactional", "navigational"] },
+          "word_count_target": { "type": "integer" },
+          "delivered_at": { "type": "string", "format": "date" },
+          "writer_vendor_id": { "type": "string" },
+          "live_url": { "type": "string", "format": "uri" },
+          "serp_context": {
+            "type": "object",
+            "description": "Snapshot of the SERP at the time the brief was written.",
+            "properties": {
+              "captured_at": { "type": "string", "format": "date-time" },
+              "top_10": { "type": "array", "items": { "type": "object", "properties": { "rank": { "type": "integer" }, "url": { "type": "string", "format": "uri" }, "title": { "type": "string" } } } }
+            }
+          }
+        }
+      }
+    },
+
+    "decisions_log": {
+      "type": "array",
+      "description": "Append-only journal of strategic decisions. The single most important object in the bundle — captures the WHY behind every choice an incoming agency would otherwise have to reverse-engineer.",
+      "items": {
+        "type": "object",
+        "required": ["decision_id", "made_at", "author", "summary"],
+        "properties": {
+          "decision_id": { "type": "string" },
+          "made_at": { "type": "string", "format": "date-time" },
+          "author": { "type": "string" },
+          "summary": { "type": "string" },
+          "context": { "type": "string", "description": "What problem was being solved." },
+          "options_considered": { "type": "array", "items": { "type": "string" } },
+          "decision": { "type": "string" },
+          "rationale": { "type": "string" },
+          "linked_objects": { "type": "array", "items": { "type": "string", "description": "IDs of audit findings, briefs, redirects, etc. that this decision touches." } }
+        }
+      }
+    },
+
+    "redirect_history": {
+      "type": "array",
+      "description": "Every 301/302 ever shipped. Required to detect broken redirect chains and to keep equity flowing after a migration.",
+      "items": {
+        "type": "object",
+        "required": ["from_url", "to_url", "status_code", "shipped_at"],
+        "properties": {
+          "from_url": { "type": "string", "format": "uri" },
+          "to_url": { "type": "string", "format": "uri" },
+          "status_code": { "enum": [301, 302, 307, 308] },
+          "shipped_at": { "type": "string", "format": "date-time" },
+          "reason": { "type": "string" },
+          "decision_id": { "type": "string", "description": "FK into decisions_log." }
+        }
+      }
+    },
+
+    "anchor_strategy": {
+      "type": "object",
+      "description": "Anchor-text targets per cluster + observed distribution. Lets the incoming agency see whether the link profile is over-optimised.",
+      "properties": {
+        "clusters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cluster_id": { "type": "string" },
+              "topic": { "type": "string" },
+              "target_distribution": {
+                "type": "object",
+                "properties": {
+                  "exact_match_pct": { "type": "number" },
+                  "phrase_match_pct": { "type": "number" },
+                  "branded_pct": { "type": "number" },
+                  "naked_url_pct": { "type": "number" },
+                  "generic_pct": { "type": "number" }
+                }
+              },
+              "observed_distribution": { "$ref": "#/properties/anchor_strategy/properties/clusters/items/properties/target_distribution" }
+            }
+          }
+        }
+      }
+    },
+
+    "vendor_relationships": {
+      "type": "array",
+      "description": "Subcontractors used during the engagement: link-builders, copywriters, outreach specialists, designers, developers.",
+      "items": {
+        "type": "object",
+        "required": ["vendor_id", "name", "role"],
+        "properties": {
+          "vendor_id": { "type": "string" },
+          "name": { "type": "string" },
+          "role": { "enum": ["link_builder", "copywriter", "designer", "developer", "outreach", "translator", "video", "other"] },
+          "contact_email": { "type": "string", "format": "email" },
+          "rate_usd_per_unit": { "type": "number" },
+          "rate_unit": { "enum": ["hour", "word", "link", "deliverable"] },
+          "introduced_at": { "type": "string", "format": "date" },
+          "performance_notes": { "type": "string" }
+        }
+      }
+    },
+
+    "baseline_metrics": {
+      "type": "object",
+      "description": "24-month timeseries baseline. Required so the incoming agency can detect anomalies introduced during the migration.",
+      "properties": {
+        "gsc": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["date", "clicks", "impressions"],
+            "properties": {
+              "date": { "type": "string", "format": "date" },
+              "clicks": { "type": "integer" },
+              "impressions": { "type": "integer" },
+              "ctr": { "type": "number" },
+              "avg_position": { "type": "number" }
+            }
+          }
+        },
+        "ga4": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["date", "sessions"],
+            "properties": {
+              "date": { "type": "string", "format": "date" },
+              "sessions": { "type": "integer" },
+              "engaged_sessions": { "type": "integer" },
+              "conversions": { "type": "integer" },
+              "revenue_usd": { "type": "number" }
+            }
+          }
+        },
+        "rank_tracking": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["keyword", "date", "position"],
+            "properties": {
+              "keyword": { "type": "string" },
+              "search_engine": { "enum": ["google", "yandex", "bing"] },
+              "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+              "device": { "enum": ["desktop", "mobile"] },
+              "date": { "type": "string", "format": "date" },
+              "position": { "type": ["number", "null"] },
+              "url": { "type": "string", "format": "uri" }
+            }
+          }
+        }
+      }
+    },
+
+    "roadmap": {
+      "type": "object",
+      "description": "Active and completed task-blocks. Refers out to the modular roadmap protocol (separate spec).",
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["task_id", "block_type", "status"],
+            "properties": {
+              "task_id": { "type": "string" },
+              "block_type": { "type": "string", "examples": ["site_audit", "link_outreach", "content_brief", "internal_linking", "redirect_audit", "ai_overview_optimization"] },
+              "title": { "type": "string" },
+              "status": { "enum": ["backlog", "in_progress", "blocked", "done", "cancelled"] },
+              "owner_vendor_id": { "type": "string" },
+              "expected_outcome": { "type": "string" },
+              "actual_outcome": { "type": "string" },
+              "started_at": { "type": "string", "format": "date" },
+              "completed_at": { "type": "string", "format": "date" }
+            }
+          }
+        }
+      }
+    },
+
+    "comments": {
+      "type": "array",
+      "description": "Threaded discussion attached to any object above. Preserves the soft context that lives in chat.",
+      "items": {
+        "type": "object",
+        "required": ["comment_id", "author", "posted_at", "body", "target"],
+        "properties": {
+          "comment_id": { "type": "string" },
+          "author": { "type": "string" },
+          "posted_at": { "type": "string", "format": "date-time" },
+          "body": { "type": "string" },
+          "target": {
+            "type": "object",
+            "required": ["object_type", "object_id"],
+            "properties": {
+              "object_type": { "enum": ["audit_finding", "link", "decision", "brief", "task", "redirect"] },
+              "object_id": { "type": "string" }
+            }
+          },
+          "in_reply_to": { "type": "string" }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "party": {
+      "type": "object",
+      "required": ["legal_name"],
+      "properties": {
+        "legal_name": { "type": "string" },
+        "primary_contact_email": { "type": "string", "format": "email" },
+        "primary_contact_name": { "type": "string" },
+        "engagement_started_at": { "type": "string", "format": "date" },
+        "engagement_ended_at": { "type": ["string", "null"], "format": "date" }
+      }
+    },
+    "escrow_status": {
+      "type": "string",
+      "enum": ["TRANSFERRED", "ESCROW", "PENDING"],
+      "description": "TRANSFERRED = under brand control; ESCROW = held neutrally until rank-safety window closes; PENDING = identified but not yet handed over."
+    }
+  }
+}
