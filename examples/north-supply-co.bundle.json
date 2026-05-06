@@ -1,0 +1,251 @@
+{
+  "meta": {
+    "bundle_version": "v0.1",
+    "brand": {
+      "legal_name": "North Supply Co.",
+      "primary_domain": "northsupplyco.example",
+      "additional_domains": ["northsupply.example", "northsupplyco.eu"],
+      "country": "US"
+    },
+    "outgoing_party": {
+      "legal_name": "Northwind Agency LLC",
+      "primary_contact_email": "ops@northwind.example",
+      "primary_contact_name": "Avery Northwind",
+      "engagement_started_at": "2023-04-12",
+      "engagement_ended_at": "2026-05-18"
+    },
+    "incoming_party": {
+      "legal_name": "Tideline SEO Inc.",
+      "primary_contact_email": "hello@tideline.example",
+      "primary_contact_name": "Sam Tide",
+      "engagement_started_at": "2026-05-19"
+    },
+    "generated_at": "2026-05-06T09:32:11Z",
+    "generated_by": "Handoff v0.1 (reference impl)",
+    "signature": {
+      "algorithm": "sha256",
+      "hash": "1c3b2a9e7d8f4612abf09c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f",
+      "signed_by": "Avery Northwind <ops@northwind.example>"
+    }
+  },
+
+  "audit_history": [
+    {
+      "audit_id": "audit-2026-04",
+      "ran_at": "2026-04-15T11:00:00Z",
+      "tool": "Screaming Frog",
+      "scope": { "domain": "northsupplyco.example", "url_count": 4218 },
+      "findings": [
+        {
+          "severity": "high",
+          "type": "broken_link",
+          "url": "https://northsupplyco.example/products/wool-throw",
+          "remediation_status": "fixed",
+          "remediation_note": "404 caused by retired SKU; redirected to /collections/throws.",
+          "first_seen": "2026-04-15T11:02:14Z",
+          "resolved_at": "2026-04-22T16:31:00Z"
+        },
+        {
+          "severity": "medium",
+          "type": "duplicate_title",
+          "url": "https://northsupplyco.example/blog/category/wool",
+          "remediation_status": "open",
+          "first_seen": "2026-04-15T11:02:14Z",
+          "resolved_at": null
+        }
+      ]
+    }
+  ],
+
+  "link_inventory": [
+    {
+      "source_url": "https://wirecutter.example/best-wool-throws",
+      "target_url": "https://northsupplyco.example/collections/throws",
+      "anchor_text": "north supply co.",
+      "anchor_type": "branded",
+      "rel": ["dofollow"],
+      "domain_rating": 92,
+      "url_rating": 71,
+      "first_seen": "2024-11-08",
+      "last_checked": "2026-05-01",
+      "status": "TRANSFERRED",
+      "acquisition": {
+        "method": "digital_pr",
+        "cost_usd": 0,
+        "vendor_id": "vendor-pr-01",
+        "campaign": "winter-2024-press"
+      }
+    },
+    {
+      "source_url": "https://homecraft.example/blog/throws-2025",
+      "target_url": "https://northsupplyco.example/products/cabin-throw",
+      "anchor_text": "premium wool throw",
+      "anchor_type": "phrase_match",
+      "rel": ["dofollow"],
+      "domain_rating": 54,
+      "url_rating": 33,
+      "first_seen": "2025-03-21",
+      "last_checked": "2026-05-01",
+      "status": "ESCROW",
+      "acquisition": {
+        "method": "guest_post",
+        "cost_usd": 380,
+        "vendor_id": "vendor-link-02",
+        "campaign": "spring-2025-guest"
+      }
+    }
+  ],
+
+  "disavow": {
+    "last_uploaded_at": "2026-02-09T14:00:00Z",
+    "search_engine": "google",
+    "entries": [
+      {
+        "pattern": "domain:link-farm.example",
+        "type": "domain",
+        "rationale": "Identified as part of a PBN by previous agency; manual review confirmed.",
+        "added_at": "2026-02-09",
+        "added_by": "Avery Northwind"
+      }
+    ]
+  },
+
+  "content_briefs": [
+    {
+      "brief_id": "brief-2025-09-throws",
+      "title": "Best wool throws for cabin trips",
+      "target_keywords": ["best wool throw", "cabin throw blanket", "wool blanket for camping"],
+      "target_url": "https://northsupplyco.example/blog/best-wool-throws-cabin",
+      "intent": "commercial",
+      "word_count_target": 2200,
+      "delivered_at": "2025-09-12",
+      "writer_vendor_id": "vendor-writer-04",
+      "live_url": "https://northsupplyco.example/blog/best-wool-throws-cabin",
+      "serp_context": {
+        "captured_at": "2025-09-04T10:00:00Z",
+        "top_10": [
+          { "rank": 1, "url": "https://wirecutter.example/best-wool-throws", "title": "The Best Wool Throws" },
+          { "rank": 2, "url": "https://outdoorgear.example/wool-blanket-guide", "title": "Wool Blanket Buyer's Guide" }
+        ]
+      }
+    }
+  ],
+
+  "decisions_log": [
+    {
+      "decision_id": "dec-2025-05-redirect-categories",
+      "made_at": "2025-05-19T15:42:00Z",
+      "author": "Avery Northwind",
+      "summary": "Consolidate /shop/* into /collections/* and 301 the legacy paths.",
+      "context": "Two parallel category structures from a 2022 replatform were splitting equity.",
+      "options_considered": [
+        "Leave both live and add canonicals",
+        "301 /shop/* into /collections/*",
+        "Rebuild navigation from scratch"
+      ],
+      "decision": "301 /shop/* into /collections/*",
+      "rationale": "Canonicals had been ignored by Google; 301 retained equity faster than a rebuild.",
+      "linked_objects": ["redirect-2025-05-shop-collections-batch"]
+    }
+  ],
+
+  "redirect_history": [
+    {
+      "from_url": "https://northsupplyco.example/shop/throws",
+      "to_url": "https://northsupplyco.example/collections/throws",
+      "status_code": 301,
+      "shipped_at": "2025-05-22T18:00:00Z",
+      "reason": "Category consolidation, see decision dec-2025-05-redirect-categories.",
+      "decision_id": "dec-2025-05-redirect-categories"
+    }
+  ],
+
+  "anchor_strategy": {
+    "clusters": [
+      {
+        "cluster_id": "cluster-throws",
+        "topic": "Wool throws and blankets",
+        "target_distribution": {
+          "exact_match_pct": 8,
+          "phrase_match_pct": 22,
+          "branded_pct": 50,
+          "naked_url_pct": 10,
+          "generic_pct": 10
+        },
+        "observed_distribution": {
+          "exact_match_pct": 11,
+          "phrase_match_pct": 25,
+          "branded_pct": 44,
+          "naked_url_pct": 9,
+          "generic_pct": 11
+        }
+      }
+    ]
+  },
+
+  "vendor_relationships": [
+    {
+      "vendor_id": "vendor-link-02",
+      "name": "Birch & Co. Outreach",
+      "role": "link_builder",
+      "contact_email": "intro@birchand.example",
+      "rate_usd_per_unit": 380,
+      "rate_unit": "link",
+      "introduced_at": "2024-08-01",
+      "performance_notes": "Reliable for DR 40-60 placements; turnaround 4-6 weeks."
+    },
+    {
+      "vendor_id": "vendor-writer-04",
+      "name": "K. Lopez (freelance)",
+      "role": "copywriter",
+      "contact_email": "kate@lopezwrites.example",
+      "rate_usd_per_unit": 0.32,
+      "rate_unit": "word",
+      "introduced_at": "2025-02-14",
+      "performance_notes": "Strong on commercial content; responds within 24h."
+    }
+  ],
+
+  "baseline_metrics": {
+    "gsc": [
+      { "date": "2026-04-01", "clicks": 12480, "impressions": 244310, "ctr": 0.051, "avg_position": 14.2 },
+      { "date": "2026-04-02", "clicks": 12117, "impressions": 238902, "ctr": 0.051, "avg_position": 14.3 }
+    ],
+    "ga4": [
+      { "date": "2026-04-01", "sessions": 18402, "engaged_sessions": 11210, "conversions": 421, "revenue_usd": 38422.50 }
+    ],
+    "rank_tracking": [
+      { "keyword": "wool throw blanket", "search_engine": "google", "country": "US", "device": "desktop", "date": "2026-04-30", "position": 3, "url": "https://northsupplyco.example/collections/throws" },
+      { "keyword": "cabin throw", "search_engine": "google", "country": "US", "device": "desktop", "date": "2026-04-30", "position": 6, "url": "https://northsupplyco.example/products/cabin-throw" }
+    ]
+  },
+
+  "roadmap": {
+    "tasks": [
+      {
+        "task_id": "task-link-equity-audit",
+        "block_type": "link_audit",
+        "title": "Re-audit link inventory before handover",
+        "status": "done",
+        "owner_vendor_id": "vendor-link-02",
+        "expected_outcome": "Confirm 1,402 backlinks pass DR>=20 + relevance check.",
+        "actual_outcome": "1,402 confirmed; 18 flagged for disavow review.",
+        "started_at": "2026-04-20",
+        "completed_at": "2026-04-29"
+      }
+    ]
+  },
+
+  "comments": [
+    {
+      "comment_id": "comment-001",
+      "author": "Sam Tide",
+      "posted_at": "2026-05-04T12:18:00Z",
+      "body": "Confirming we'll honor the existing redirect map; flagging two 302s in legacy /shop/* that should be 301s.",
+      "target": {
+        "object_type": "decision",
+        "object_id": "dec-2025-05-redirect-categories"
+      }
+    }
+  ]
+}
